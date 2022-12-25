@@ -1,0 +1,102 @@
+LLVM emphasizes the philosophy that everything is a library.
+
+1.Classes:
+---------
+Below provides the name of some llvm classes and their uses.
+
+(a) TranslationUnitDecl:
+-----------------------
+When translating C or C++ to the LLVM IR, clang will represent the program in
+the memory by using "Abstract Syntax Tre (AST)" structure.
+
+(b) SelectionDAG & MachineFunction:
+----------------------------------
+When translating the LLVM IR to a machine specific assembly language, LLVM will
+first convert the program to a "Directed Acyclic Graph (DAG)" to allow easy
+instrnction selection (the "SelectionDAG" class) and then it will convert it
+back to a three address representation to allow the instruction scheduling to
+happen (the MachineFunction class). 
+
+(c) MCModule:
+------------
+To implement assemblers and linkers, LLVM uses a fourth intermediary data
+structure (the "MCModule" class) to hold the program representation in the
+context of object files.
+
+2. Basic principles of the LLVM IR:
+----------------------------------
+As a compiler IR, the two basic principles of the LLVM IR that guided the
+development of the core libraries, are the following,
+
+    - SSA representation and infinite registers that allow fast optimizations.
+    - Easy link-time optimization by storing entire programs in an on-disk IR
+      representation.
+
+3. Most important parts of LLVM infrastructure:
+---------------------------------------------
+
+(a) Frontend:
+------------
+This is the complier step that translates computer programming languages such as
+C, C++, Objective-C ...etc into the LLVM compiler
+IR(intermediate representation). This includes a lexical analyzer, a syntax
+parser, a semantic analyzer, and the LLVM IR code generator.
+
+(b) Intermediate representation:
+-------------------------------
+The LLVM IR has both human readable and binary-encoded representations. Tools
+and libraries provide interfaces to IR construction, assembling and
+disassembling. The LLVM optimizer also operates on the IR where most part of
+optimizations is applied.
+
+(c) Backend:
+-----------
+This is the step, that is responsible for code generation. It converts the LLVM
+IR to a target-specific assembly code or object code binaries.
+Register allocation, loop transformations, peephole optimizations, and
+target-specific optimizations/transformations belong to the backend.
+
+4. clang:
+---------
+Clang is just a complier driver.
+
+Clang uses several other smaller tools by linking together the libraries that
+implement their functionalities. This is possible because LLVM uses a design
+that emphasizes the reuse of the maximum amount of code, which then lives in
+libraries.
+
+Below is a very good example to understand this,
+
+
+    -----------------------------------------------------------------------
+    |                                                                     |
+    | --------------------                          --------------------  |
+    | |  (Library)       |                          |   (Library)      |  |
+    | |                  |--------------------------|                  |  |
+    | |  LibLLVMipa      |           |              |  LibLLVMCodeGen  |  |
+    | |                  |           |              |                  |  |
+    | --------------------           |              --------------------  |
+    |        |                       |                       |            |
+    |        |                       |                       |            |
+    |        |                       |                       |            |
+    |       \|/                      |                      \|/           |
+    | --------------------           |              --------------------  |
+    | |     (Tool)       |           |              |    (Tool)        |  |
+    | |                  |           |              |                  |  |
+    | |     Opt          |           |              |     llc          |  |
+    | |                  |           |              |                  |  |
+    | --------------------           |              -------------------   |
+    |                               \|/                                   |
+    |                       --------------------                          |
+    |                       |    (Tool)        |                          |
+    |                       |                  |                          |
+    |                       |    clang         |                          |
+    |                       |                  |                          |
+    |                       --------------------                          |
+    -----------------------------------------------------------------------
+
+Here, tool 'opt' uses a library "LibLLVMipa" and tool 'llc' uses a library
+"LibLLVMCodeGen", whereas tool 'clang' uses both of these ('LibLLVMipa' and
+'LibLLVMCodeGen') libraries.
+
+ 
