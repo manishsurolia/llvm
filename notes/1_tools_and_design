@@ -99,4 +99,93 @@ Here, tool 'opt' uses a library "LibLLVMipa" and tool 'llc' uses a library
 "LibLLVMCodeGen", whereas tool 'clang' uses both of these ('LibLLVMipa' and
 'LibLLVMCodeGen') libraries.
 
+5. Interacting with the compiler driver (clang tool):
+----------------------------------------------------
+Once we feed our program to a compiler driver(clang), it can generates an
+executable.
+
+For example,
+
+#include <stdio.h>
+
+int main() {
+    printf("Hello, World!\n");
+    return 0;
+}
+
+Just use clang driver to generate binary for the same platform.
+
+[ ] clang test.c –o test
+[ ] ./test
+
+In order to see all subsequent tools called by the driver to complete your
+order, use the -### command argument,
+
+[ ] ~/Documents/llvm-project/build/bin/clang -### test.c
+clang version 16.0.0 (https://github.com/llvm/llvm-project.git 0df9a72f283a5c2b6f0435bd988e1fd70ed5b477)
+Target: x86_64-unknown-linux-gnu
+Thread model: posix
+InstalledDir: /home/ubuntu/Documents/llvm-project/build/bin
+ "/home/ubuntu/Documents/llvm-project/build/bin/clang-16" "-cc1" "-triple" "x86_64-unknown-linux-gnu" "-emit-obj" "-mrelax-all" "--mrelax-relocations" "-disable-free" "-clear-ast-before-backend" "-main-file-name" "test.c" "-mrelocation-model" "pic" "-pic-level" "2" "-pic-is-pie" "-mframe-pointer=all" "-fmath-errno" "-ffp-contract=on" "-fno-rounding-math" "-mconstructor-aliases" "-funwind-tables=2" "-target-cpu" "x86-64" "-tune-cpu" "generic" "-mllvm" "-treat-scalable-fixed-error-as-warning" "-debugger-tuning=gdb" "-fcoverage-compilation-dir=/home/ubuntu/Documents/git/notes" "-resource-dir" "/home/ubuntu/Documents/llvm-project/build/lib/clang/16" "-internal-isystem" "/home/ubuntu/Documents/llvm-project/build/lib/clang/16/include" "-internal-isystem" "/usr/local/include" "-internal-isystem" "/usr/lib/gcc/x86_64-linux-gnu/7/../../../../x86_64-linux-gnu/include" "-internal-externc-isystem" "/usr/include/x86_64-linux-gnu" "-internal-externc-isystem" "/include" "-internal-externc-isystem" "/usr/include" "-fdebug-compilation-dir=/home/ubuntu/Documents/git/notes" "-ferror-limit" "19" "-fgnuc-version=4.2.1" "-fcolor-diagnostics" "-faddrsig" "-D__GCC_HAVE_DWARF2_CFI_ASM=1" "-o" "/tmp/test-3e45f4.o" "-x" "c" "test.c"
+ "/usr/bin/ld" "-pie" "-z" "relro" "--hash-style=gnu" "--eh-frame-hdr" "-m" "elf_x86_64" "-dynamic-linker" "/lib64/ld-linux-x86-64.so.2" "-o" "a.out" "/usr/lib/x86_64-linux-gnu/Scrt1.o" "/usr/lib/x86_64-linux-gnu/crti.o" "/usr/lib/gcc/x86_64-linux-gnu/7/crtbeginS.o" "-L/usr/lib/gcc/x86_64-linux-gnu/7" "-L/lib/x86_64-linux-gnu" "-L/lib/../lib64" "-L/usr/lib/x86_64-linux-gnu" "-L/lib" "-L/usr/lib" "/tmp/test-3e45f4.o" "-lgcc" "--as-needed" "-lgcc_s" "--no-as-needed" "-lc" "-lgcc" "--as-needed" "-lgcc_s" "--no-as-needed" "/usr/lib/gcc/x86_64-linux-gnu/7/crtendS.o" "/usr/lib/x86_64-linux-gnu/crtn.o"
+
+6. Using standalone tools:
+-------------------------
+
+    (a) clang front-end tool: Generate LLVM IR code from the source code.
+
+    (b) Opt tool: Optimize a program at IR level. Its a platform independent
+optimization. Input to this tool is an IR file and also output is also an IR
+file.
+
+    (c) llc tool: Converts LLVM bitcode to a target-machine assembly code. It
+can also do machine specific optimizations.
+
+    (d) llvm-mc tool: Generate object file for format such as ELF.
+
+    (e) llvm-link tool: Links together several LLVM bitcodes to produces a
+single LLVM bitcode.
+
+    (f) llvm-as tool: Transforms llvm IR file to LLVM bitcode.
+
+    (g) llvm-dis tool: decodes LLVM bitcode into LLVM IR code.
+
+Example:
+------
+Let's take 2 files 'test1.c' and 'test2.c' as below and try to use above tools.
+
+[ ] cat test1.c
+#include <stdio.h>
+
+extern int add(int a, int b);
+
+int main(void)
+{
+    int i=1;
+    int j=2;
+    int k;
+
+    k = add (i,j);
+
+    printf("k : %d\n", k);
+    return 0;
+}
+
+[ ] cat test2.c
+#include <stdio.h>
+
+int add(int a, int b)
+{
+    return (a+b);
+}
+
+[ ] clang -emit-llvm -c test1.c -o test1.bc
+[ ] clang -emit-llvm -c test2.c -o test2.bc
+[ ] llvm-link test1.bc test2.bc -o output.bc
+[ ] llc -filetype=obj output.bc -o output.o
+[ ] clang output.o -o output
+[ ] ./output
+k : 3
  
+6. Delving into the LLMV internal design:
+----------------------------------------
