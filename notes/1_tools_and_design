@@ -187,5 +187,29 @@ int add(int a, int b)
 [ ] ./output
 k : 3
  
-6. Delving into the LLMV internal design:
+7. Delving into the LLMV internal design:
 ----------------------------------------
+
+LLVM is written in c++ using object-oriented paradigms and segregates different
+components into separate libraries.
+
+Some important libraries are:
+    - libLLVMCore : LLVM IR related code.
+    - libLLAVMAnalysis : IR analysis passes.
+    - libLLVMCodeGen : Target-independent code generation
+    - libLLVMTarget : Target machine information.
+    - libLLVMX86CodeGen : X86 target-specific code generation information.
+    - libLLVMSupport : General Utilities.
+    - libclang : C front-end code support interface. AST traversing.
+    - libclangDriver : Front-end level analysis. CFG, Call-graph construction.
+
+As an example, 'llc' tool uses libLLVMX86CodeGen library which internally uses
+'libLLVMCodeGen' and 'libLLVMTarget' libraries.
+
+Below C++ features are used in the development of LLVM.
+    - Polymorphism
+    - Uses C++ templates
+    - Uses C++ best practices
+    - Uses lightweight string references
+
+Below is the way to use Pluggable pass interfaces of LLVM,

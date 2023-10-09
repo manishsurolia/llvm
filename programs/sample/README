@@ -1,0 +1,10 @@
+This Sample program shows how we can write a clang++ program and compile it.
+I am using 'llvm-config' utility from LLVM to include header files and
+libraries. 
+
+Just included this file 'llvm/IR/Function.h' in the program to showcase the
+usage of 'llvm-config' utility.
+
+To compile this program, use below command.
+
+[ ] clang++ -I$(llvm-config --includedir) $(llvm-config --ldflags) $(llvm-config --libs) sample.cpp 
