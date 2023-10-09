@@ -7,4 +7,6 @@ usage of 'llvm-config' utility.
 
 To compile this program, use below command.
 
-[ ] clang++ -I$(llvm-config --includedir) $(llvm-config --ldflags) $(llvm-config --libs) sample.cpp 
+[ ] clang++ -I$(llvm-config --includedir) $(llvm-config --ldflags) $(llvm-config --libs) sample.cpp -o sample
+[ ] ./sample
+Hello world!!
